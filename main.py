@@ -11,22 +11,24 @@ SANDBOX = "sandbox"
 PROJECTS_DIR: str = DEV_DIR + "/" + PROJECTS
 SANDBOX_DIR: str = DEV_DIR + "/" + SANDBOX
 
-# if not os.path.exists(DEV_DIR):
-#     os.makedirs(DEV_DIR)
-#
-# if not os.path.exists(PROJECT_DIR):
-#     os.makedirs(PROJECT_DIR)
-#
-# if not os.path.exists(SANDBOX_DIE):
-#     os.makedirs(SANDBOX_DIE)
 
-
-class MyTestApp(npyscreen.NPSAppManaged):
+class DevBox(npyscreen.NPSAppManaged):
     def onStart(self):
         self.registerForm("MAIN", MainForm())
 
 
 class MainForm(npyscreen.FormWithMenus):
+
+    def __init__(self, *args, **keywords):
+        super().__init__(*args, **keywords)
+        if not os.path.exists(DEV_DIR):
+            os.makedirs(DEV_DIR)
+
+        if not os.path.exists(PROJECTS_DIR):
+            os.makedirs(PROJECTS_DIR)
+
+        if not os.path.exists(SANDBOX_DIR):
+            os.makedirs(SANDBOX_DIR)
 
     def create(self):
         items = []
@@ -42,16 +44,6 @@ class MainForm(npyscreen.FormWithMenus):
         items.append(("Exit", self.exit_application))
 
         self.m1.addItemsFromList(items)
-
-        # self.m2 = self.add_menu(name="Another Menu", shortcut="b", )
-        # self.m2.addItemsFromList([
-        #     ("Just Beep", self.whenDisplayText("Just Beep")),
-        # ])
-        #
-        # self.m3 = self.m2.addNewSubmenu("A sub menu", "^F")
-        # self.m3.addItemsFromList([
-        #     ("Just Beep", self.whenDisplayText("Just Beep")),
-        # ])
 
     def get_projects_menu_items(self):
         items = []
@@ -72,8 +64,8 @@ class MainForm(npyscreen.FormWithMenus):
 
 
 def main():
-    TA = MyTestApp()
-    TA.run()
+    devBox = DevBox()
+    devBox.run()
 
 
 if __name__ == '__main__':
