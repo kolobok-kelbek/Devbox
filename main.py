@@ -1,72 +1,135 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 
-import npyscreen
 import pathlib
+import getch
 import os
+from colorama import Fore, init
 
+init(autoreset=True)
+
+
+def go_to(path):
+    os.system('clear')
+    os.chdir(path)
+    os.system("bash")
+    quit(0)
+
+
+def get_menu_struct() -> dict:
+    return {
+        PROJECTS: get_projects(),
+        SANDBOX: get_sandbox_list()
+    }
+
+
+def write_menu(menu_items: dict, selected: int):
+    count: int = 0
+    for name, value in menu_items.items():
+        count += 1
+        if count == selected:
+            print(' -> ' + Fore.CYAN + name)
+        else:
+            print('    ' + name)
+
+
+def key_getch():
+    return getch.getch()
+
+
+def create_directories() -> None:
+    if not os.path.exists(DEV_DIR):
+        os.makedirs(DEV_DIR)
+
+    if not os.path.exists(PROJECTS_DIR):
+        os.makedirs(PROJECTS_DIR)
+
+    if not os.path.exists(SANDBOX_DIR):
+        os.makedirs(SANDBOX_DIR)
+
+
+def get_files_in_directory(path: str) -> dict:
+    file_names: dict = {}
+
+    for currentFile in pathlib.Path(path).iterdir():
+        project_path: str = str(currentFile)
+        file_names[os.path.basename(project_path)] = project_path
+
+    return file_names
+
+
+def get_home_dir() -> str:
+    return str(pathlib.Path.home())
+
+
+def get_projects() -> dict:
+    project_dir = get_home_dir() + "/" + PROJECTS_DIR
+    return get_files_in_directory(project_dir)
+
+
+def get_sandbox_list() -> dict:
+    sandbox_list = get_home_dir() + '/' + SANDBOX_DIR
+    return get_files_in_directory(sandbox_list)
+
+
+PROGRAM_NAME: str = 'DevBox'
 DEV_DIR: str = "Dev"
-PROJECTS = "projects"
-SANDBOX = "sandbox"
+PROJECTS: str = "projects"
+SANDBOX: str = "sandbox"
 PROJECTS_DIR: str = DEV_DIR + "/" + PROJECTS
 SANDBOX_DIR: str = DEV_DIR + "/" + SANDBOX
 
+index: int = 1
+type = None
 
-class DevBox(npyscreen.NPSAppManaged):
-    def onStart(self):
-        self.registerForm("MAIN", MainForm())
+while True:
+    os.system('clear')
 
+    if type is None:
+        data: dict = get_menu_struct()
+    else:
+        data: dict = get_menu_struct()[type]
 
-class MainForm(npyscreen.FormWithMenus):
+    length = len(data)
 
-    def __init__(self, *args, **keywords):
-        super().__init__(*args, **keywords)
-        if not os.path.exists(DEV_DIR):
-            os.makedirs(DEV_DIR)
+    if index < 1:
+        index = length
 
-        if not os.path.exists(PROJECTS_DIR):
-            os.makedirs(PROJECTS_DIR)
+    if index > length:
+        index = 1
 
-        if not os.path.exists(SANDBOX_DIR):
-            os.makedirs(SANDBOX_DIR)
+    write_menu(data, index)
 
-    def create(self):
-        items = []
+    key = key_getch()
 
-        self.m1 = self.add_menu(name="Main Menu", shortcut="^M")
+    if 'q' == key:
+        os.system('clear')
+        quit(0)
 
-        self.m2 = self.m1.addNewSubmenu(PROJECTS, shortcut="^p")
-        self.m2.addItemsFromList(self.get_projects_menu_items())
+    if 'w' == key:
+        index -= 1
 
-        self.m3 = self.m1.addNewSubmenu(SANDBOX, shortcut="^s")
-        self.m3.addItemsFromList(self.get_sandbox_menu_items())
+        if index < 1:
+            index = length
 
-        items.append(("Exit", self.exit_application))
+    if 's' == key:
+        index += 1
 
-        self.m1.addItemsFromList(items)
+        if index > length:
+            index = 1
 
-    def get_projects_menu_items(self):
-        items = []
-        for currentFile in pathlib.Path(str(pathlib.Path.home()) + "/" + PROJECTS_DIR).iterdir():
-            items.append((os.path.basename(str(currentFile)), None))
-        return items
+    if 'a' == key:
+        type = None
 
-    def get_sandbox_menu_items(self):
-        items = []
-        for currentFile in pathlib.Path(str(pathlib.Path.home()) + "/" + SANDBOX_DIR).iterdir():
-            items.append((os.path.basename(str(currentFile)), None))
-        return items
+    if 'd' == key:
+        c: int = 0
+        items = data.items()
 
-    def exit_application(self):
-        self.parentApp.setNextForm(None)
-        self.editing = False
-        self.parentApp.switchFormNow()
-
-
-def main():
-    devBox = DevBox()
-    devBox.run()
-
-
-if __name__ == '__main__':
-    main()
+        for name, item in items:
+            c += 1
+            if c == index:
+                if type is None:
+                    type = name
+                else:
+                    go_to(item)
+                break
