@@ -9,10 +9,9 @@ from colorama import Fore, init
 init(autoreset=True)
 
 
-def go_to(path):
+def go_to(path) -> None:
     os.system('clear')
-    os.chdir(path)
-    os.system("bash")
+    os.system("cd " + path)
     quit(0)
 
 
